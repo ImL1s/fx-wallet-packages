@@ -37,6 +37,12 @@ BigInt getE(ECPoint P, Uint8List rX, Uint8List message) {
       secp256k1.n;
 }
 
+class Bip32Type {
+  final int public;
+  final int private;
+  const Bip32Type({required this.public, required this.private});
+}
+
 final bitcoin = NetworkType(
   messagePrefix: '\x18Bitcoin Signed Message:\n',
   bech32: 'bc',
