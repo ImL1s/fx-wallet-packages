@@ -39,3 +39,7 @@ Uint8List encodeBigIntBe(BigInt number, {int? length}) {
 // Uint8List encodeBigInt(BigInt number) {
 //   return encodeBigIntBe(number);
 // }
+
+BigInt bigFromBytes(Uint8List input) {
+  return u8aToBn(input);
+}

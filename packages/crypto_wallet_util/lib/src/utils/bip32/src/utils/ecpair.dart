@@ -1,7 +1,8 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:crypto_wallet_util/src/utils/bip32/bip32.dart' show NetworkType;
+import 'package:crypto_wallet_util/src/utils/bip32/bip32.dart'
+    show NetworkType, Bip32Type;
 import 'package:crypto_wallet_util/src/utils/bip32/src/utils/ecurve.dart'
     as ecc;
 import 'package:blockchain_utils/blockchain_utils.dart';
@@ -24,6 +25,10 @@ List<int> taggedHash(String tag, List<int> msg) {
   return crypto.sha256.convert([...tagHash, ...tagHash, ...msg]).bytes;
 }
 
+Uint8List toXOnly(Uint8List pubKey) {
+  return pubKey.length == 32 ? pubKey : pubKey.sublist(1, 33);
+}
+
 BigInt getE(ECPoint P, Uint8List rX, Uint8List message) {
   return u8aToBn(
         Uint8List.fromList(
@@ -37,11 +42,7 @@ BigInt getE(ECPoint P, Uint8List rX, Uint8List message) {
       secp256k1.n;
 }
 
-class Bip32Type {
-  final int public;
-  final int private;
-  const Bip32Type({required this.public, required this.private});
-}
+// Bip32Type imported from bip32.dart
 
 final bitcoin = NetworkType(
   messagePrefix: '\x18Bitcoin Signed Message:\n',
@@ -103,7 +104,7 @@ class ECPair {
         publicKey![0] == 3 || (publicKey![0] == 4 && (publicKey![64] & 1) == 1);
     final private = hasOddY ? _privateNegate() : privateKey;
 
-    final sum = bigFromBytes(private!) + bigFromBytes(key);
+    final sum = bigFromBytes(private!) + bigFromBytes(Uint8List.fromList(key));
     final r = sum % secp256k1.n;
     final mod = r >= BigInt.zero ? r : secp256k1.n + r;
     final result = Uint8List.fromList(bigToBytes(mod));
@@ -137,12 +138,14 @@ class ECPair {
     final d = (P.y!.toBigInteger()! % BigInt.two == BigInt.zero)
         ? d0
         : secp256k1.n - d0;
-    final t = d ^ bigFromBytes(taggedHash('BIP0340/aux', bAux));
-    final k0 =
-        bigFromBytes(
-          taggedHash(
-            'BIP0340/nonce',
-            bigToBytes(t) + bigToBytes(P.x!.toBigInteger()!) + message,
+    final t =
+        d ^ bigFromBytes(Uint8List.fromList(taggedHash('BIP0340/aux', bAux)));
+    final k0 = bigFromBytes(
+          Uint8List.fromList(
+            taggedHash(
+              'BIP0340/nonce',
+              bigToBytes(t) + bigToBytes(P.x!.toBigInteger()!) + message,
+            ),
           ),
         ) %
         secp256k1.n;

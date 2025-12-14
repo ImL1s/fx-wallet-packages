@@ -17,6 +17,8 @@ export 'src/transaction/eth/tx_data.dart';
 export 'src/transaction/eth/eip1559.dart';
 export 'src/transaction/eth/eip7702.dart';
 export 'src/transaction/eth/legacy.dart';
+export 'src/transaction/eth/lib/txNetwork.dart';
+export 'src/transaction/eth/lib/txData.dart';
 
 // Export Bitcoin Sign Data Type (for bc_ur_dart)
 export 'src/transaction/btc/sign_data.dart';

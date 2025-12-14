@@ -1,116 +1,46 @@
-# crypto_utils
+# crypto_wallet_util (Forked)
 
-Crypto &amp; Blockchain Toolkit
+This is a fork of [FXWallet/fx-wallet-packages](https://github.com/AiFxWallet/fx-wallet-packages) with modifications to support modern `blockchain_utils` versions.
 
-This package is a convenient and powerful cryptographic toolkit, written in pure "Dart", designed to offer user-friendly multi-chain address generation and  transaction assembly tools for developers, enterprises, and blockchain  enthusiasts. The toolkit provides encoding and decoding for various data formats and cryptographic algorithms, enabling swift and seamless  support for additional cryptocurrencies beyond those initially  supported.
+## Why This Fork?
 
-## Features
+The original `crypto_wallet_util` package depends on `blockchain_utils ^1.x`, which conflicts with newer projects requiring `blockchain_utils ^5.4.0`. This fork resolves the version incompatibility while maintaining compatibility with `bc_ur_dart`.
 
-### **Support wallet:**
+## Problems Solved
 
-- ALGO
-- ALPH
-- APTOS
-- BCH
-- BTC
-- CKB
-- COSMOS
-- DOGE
-- DOT
-  - ED25519
-  - SR25519
+### 1. Dependency Version Conflict
+- **Original**: `blockchain_utils: ^1.4.1`
+- **This Fork**: `blockchain_utils: ^5.4.0`
 
-- ETH
-- FIL
-- HNS
-- ICP
-- KAS
-  - KAS
-  - KLS
+### 2. API Breaking Changes
+Updated internal code to use new `blockchain_utils` v5 APIs:
+- `BigintUtils.toBytes()` parameter changes (`order` instead of `endian`)
+- Removed deprecated `Buffer` usage
+- Fixed type mismatches (`List<int>` vs `Uint8List`)
 
-- LTC
-- NEAR
-- SC (sia coin)
-  - SCP
-- SOL
-- SUI
-- TRX
-- XRP
+### 3. bc_ur_dart Compatibility
+Maintained required exports for `bc_ur_dart` integration:
+- `lib/utils.dart` - Exports utility functions including `dynamicToUint8List`
+- `lib/transaction.dart` - Stub classes for `GsplTxData`, `GsplItem`, `BtcSignDataType`
+- `lib/crypto_utils.dart` - Added exports for `TxNetwork`, `EthTxDataRaw`
 
-### **Support transaction :**  
+### 4. Code Fixes
+- Fixed typo in `bigint.dart` (`ㄍimport` → `import`)
+- Removed duplicate `TxNetwork` definitions
+- Cleaned up unused forked code
 
-- ALGO
-- ALPH
-- APTOS
-- BTC
-  - PSBT
-  - GSPL
-- CKB
-- COSMOS
-- ETH
-  - EIP1559
-  - LEGACY
-- FIL
-- HNS
-- ICP
-- KAS
-- NEAR
-- SOL
-- SUI
-- XRP
+## Usage
 
-### Support address check
+In your `pubspec.yaml`, use `dependency_overrides`:
 
-- BASE32
-  - ALGO
-  - FIL
-- ETH
-- BTC
-  - LTC
-  - DOGE
-  - BTC
-  - BCH
-  - BELL
-- BECH32
-  - COSMOS
-    - ATOM
-    - KAVA
-    - SEI
-  - CKB
-  - HNS
-- KAS
-  - KAS
-  - KLS
-- BASE58 (not fully support)
-  - ALPH
-- regular
-  - SOL
-  - ALEO
-  - TON
-  - APTOS
-  - DOT
-  - NEAR
-  - SC
-  - SUI
-  - TRX
-  - XRP
+```yaml
+dependency_overrides:
+  crypto_wallet_util:
+    path: /path/to/this/fork/packages/crypto_wallet_util
+  blockchain_utils: ^5.4.0
+  bitcoin_base: ^6.9.0
+```
 
-### **Sign and Verification:**
+## Upstream Repository
 
-- Ed25519
-- Sr25519
-- Secp256k1
-- Schnorr
-
-### **Encoding and Decoding:**
-
-- Base32 Encoding/Decoding
-- SS58 Encoding/Decoding
-- Base58Check Encoding/Decoding
-- Bech32 Encoding/Decoding
-- Hex Encoding/Decoding
-- BigInt Encoding/Decoding
-
-## Feature requests and bugs ##
-
-Please file feature requests and bugs in the issue tracker.
+Original: https://github.com/AiFxWallet/fx-wallet-packages
