@@ -36,6 +36,6 @@ Uint8List encodeBigIntBe(BigInt number, {int? length}) {
   );
 }
 
-Uint8List encodeBigInt(BigInt number) {
-  return encodeBigIntBe(number);
-}
+// Uint8List encodeBigInt(BigInt number) {
+//   return encodeBigIntBe(number);
+// }
