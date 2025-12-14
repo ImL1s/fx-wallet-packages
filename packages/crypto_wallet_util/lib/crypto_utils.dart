@@ -23,3 +23,5 @@ export 'src/transaction/btc/sign_data.dart';
 
 // Ensure generic utils are available if needed
 // export 'src/utils/utils.dart';
+
+class BtcTransaction {}
