@@ -1,8 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:crypto_wallet_util/src/config/config.dart';
+// import 'package:crypto_wallet_util/config.dart';/config.dart';
 import 'package:crypto_wallet_util/src/utils/bip32/bip32.dart' show NetworkType;
 import 'package:crypto_wallet_util/src/utils/utils.dart';
+
+enum AddressType { NONE }
+
+const COMMON_REG = '';
 
 class WalletSetting {
   /// [WalletSetting] stores the essential information required for wallet generation.
@@ -19,13 +23,14 @@ class WalletSetting {
   NetworkType? networkType;
   int bech32Length;
   String regExp;
-  WalletSetting(
-      {required this.bip44Path,
-      this.prefix = '',
-      this.networkType,
-      this.bech32Length = 38,
-      this.regExp = COMMON_REG,
-      this.addressType = AddressType.NONE});
+  WalletSetting({
+    required this.bip44Path,
+    this.prefix = '',
+    this.networkType,
+    this.bech32Length = 38,
+    this.regExp = COMMON_REG,
+    this.addressType = AddressType.NONE,
+  });
 }
 
 abstract class WalletType {

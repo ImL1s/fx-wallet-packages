@@ -6,13 +6,20 @@
 /// etc.
 library crypto_utils;
 
-export '../wallets.dart';
-export '../src/wallet.dart';
-export '../src/type/type.dart';
-export '../transaction.dart';
-export '../src/utils/address.dart';
-export '../src/utils/message.dart';
-export '../src/config/config.dart';
-
+// Export necessary utils
 export 'src/utils/bip32/bip32.dart';
 export 'src/utils/bip39/bip39.dart';
+export 'src/type/type.dart';
+
+// Export Ethereum transaction related classes (for bc_ur_dart)
+export 'src/transaction/eth/tx_signer.dart';
+export 'src/transaction/eth/tx_data.dart';
+export 'src/transaction/eth/eip1559.dart';
+export 'src/transaction/eth/eip7702.dart';
+export 'src/transaction/eth/legacy.dart';
+
+// Export Bitcoin Sign Data Type (for bc_ur_dart)
+export 'src/transaction/btc/sign_data.dart';
+
+// Ensure generic utils are available if needed
+export 'src/utils/utils.dart';

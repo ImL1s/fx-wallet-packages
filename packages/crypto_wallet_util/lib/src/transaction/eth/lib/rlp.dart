@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:math';
 
 import 'package:convert/convert.dart';
-import 'package:crypto_wallet_util/utils.dart';
+import 'package:crypto_wallet_util/src/utils/utils.dart';
 
 import './utils.dart';
 
@@ -32,7 +32,7 @@ Uint8List encodeLength(int length, int offset) {
 
   return _concat([
     Uint8List.fromList([offset + 55 + lLength]),
-    Uint8List.fromList(hex.decode(hexLen))
+    Uint8List.fromList(hex.decode(hexLen)),
   ]);
 }
 
@@ -71,8 +71,9 @@ Decoded _decode(Uint8List input) {
     int length = firstByte - 0x7f;
 
     // set 0x80 null to 0
-    Uint8List data =
-        firstByte == 0x80 ? Uint8List(0) : input.sublist(1, length);
+    Uint8List data = firstByte == 0x80
+        ? Uint8List(0)
+        : input.sublist(1, length);
 
     if (length == 2 && data[0] < 0x80)
       throw FormatException('invalid rlp encoding: byte must be less 0x80');

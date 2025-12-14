@@ -1,13 +1,13 @@
 /// This module exports a selection of commonly used encryption algorithms and tools.
 library utils;
 
-export './address.dart';
+// export './address.dart';
 export './base32.dart';
 export './digest.dart';
 export './ed25519.dart';
 export './extension.dart';
 export './bigint.dart';
-export './hd_wallet.dart';
+// export './hd_wallet.dart';
 export './hex.dart';
 export './blake2b.dart';
 export './schnorr.dart';

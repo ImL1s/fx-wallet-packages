@@ -1,11 +1,20 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:buffer/buffer.dart';
 import 'package:crypto_wallet_util/src/utils/utils.dart';
+import 'package:blockchain_utils/blockchain_utils.dart';
 
-import './constants.dart';
-import './util.dart';
+import 'abi.dart';
+import 'constants.dart';
+import 'util.dart';
 import '../utils.dart';
+
+BigInt fromSigned(Uint8List val) =>
+    BigintUtils.fromBytes(val, byteOrder: Endian.big);
+int bufferToInt(Uint8List val) =>
+    BigintUtils.fromBytes(val, byteOrder: Endian.big).toInt();
+// Uint8List intToBuffer(int val) ... (Removed duplicate)
 
 /// Sign typed data, support all versions
 ///
@@ -14,24 +23,30 @@ import '../utils.dart';
 /// @param {TypedDataVersion} version - typed data sign method version
 /// @returns {String} - signature
 ///
-String signTypedData(
-    {required Uint8List privateKey,
-    required String jsonData,
-    required TypedDataVersion version}) {
-  final message =
-      TypedDataUtil.hashMessage(jsonData: jsonData, version: version);
+String signTypedData({
+  required Uint8List privateKey,
+  required String jsonData,
+  required TypedDataVersion version,
+}) {
+  final message = TypedDataUtil.hashMessage(
+    jsonData: jsonData,
+    version: version,
+  );
   final signature = EcdaSignature.signForEth(message, privateKey);
 
   return concatSig(signature.r, signature.s, intToBuffer(signature.v));
 }
 
 /// Sign typed data compact, support all versions
-String signTypedDataCompact(
-    {required Uint8List privateKey,
-    required String jsonData,
-    required TypedDataVersion version}) {
-  final message =
-      TypedDataUtil.hashMessage(jsonData: jsonData, version: version);
+String signTypedDataCompact({
+  required Uint8List privateKey,
+  required String jsonData,
+  required TypedDataVersion version,
+}) {
+  final message = TypedDataUtil.hashMessage(
+    jsonData: jsonData,
+    version: version,
+  );
 
   return signToCompact(message: message, privateKey: privateKey);
 }
@@ -62,8 +77,10 @@ String _padWithZeroes(String number, int length) {
   return myString;
 }
 
-String signToCompact(
-    {required Uint8List message, required Uint8List privateKey}) {
+String signToCompact({
+  required Uint8List message,
+  required Uint8List privateKey,
+}) {
   final sig = EcdaSignature.signForEth(message, privateKey);
   final recoveryParam = 1 - sig.v % 2;
 
@@ -77,7 +94,9 @@ String signToCompact(
 /// can be fed into `ecsign` to produce the same signature as the `eth_sign` call for a given `message`, or fed to `ecrecover` along
 /// with a signature to recover the public key used to produce the signature.
 Uint8List hashPersonalMessage(dynamic message) {
-  var prefix = toBuffer("\u0019Ethereum Signed Message:\n${message.length.toString()}");
+  var prefix = toBuffer(
+    "\u0019Ethereum Signed Message:\n${message.length.toString()}",
+  );
   var bytesBuffer = BytesBuffer();
   bytesBuffer.add(prefix);
   bytesBuffer.add(message);

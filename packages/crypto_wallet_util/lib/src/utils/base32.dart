@@ -1,6 +1,6 @@
 import 'package:base32/base32.dart';
 import 'package:base32/encodings.dart';
-import 'package:crypto_wallet_util/utils.dart';
+import 'package:crypto_wallet_util/src/utils/utils.dart';
 
 /// Enum of base32 encoding type.
 enum Base32Type { BASE32, RFC4648 }
@@ -10,8 +10,11 @@ class Base32 {
   static final String CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
   static final String RFC4648 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
-  static String encode(List<int> data,
-      {Base32Type type = Base32Type.BASE32, bool padding = false}) {
+  static String encode(
+    List<int> data, {
+    Base32Type type = Base32Type.BASE32,
+    bool padding = false,
+  }) {
     switch (type) {
       case Base32Type.BASE32:
         String base32Hex = '';
@@ -24,16 +27,20 @@ class Base32 {
         }
         return base32Hex;
       case Base32Type.RFC4648:
-        String base32Hex = base32.encode(data.toUint8List(),
-            encoding: Encoding.nonStandardRFC4648Lower);
+        String base32Hex = base32.encode(
+          data.toUint8List(),
+          encoding: Encoding.nonStandardRFC4648Lower,
+        );
         if (base32Hex[base32Hex.length - 1] == '=')
           base32Hex = base32Hex.substring(0, base32Hex.length - 1);
         return base32Hex;
     }
   }
 
-  static List<int> decode(String base32Hex,
-      {Base32Type type = Base32Type.BASE32}) {
+  static List<int> decode(
+    String base32Hex, {
+    Base32Type type = Base32Type.BASE32,
+  }) {
     switch (type) {
       case Base32Type.BASE32:
         List<int> data = [];
@@ -46,8 +53,10 @@ class Base32 {
         }
         return data;
       case Base32Type.RFC4648:
-        final base32data = base32.decode(base32Hex,
-            encoding: Encoding.nonStandardRFC4648Lower);
+        final base32data = base32.decode(
+          base32Hex,
+          encoding: Encoding.nonStandardRFC4648Lower,
+        );
         return base32data;
     }
   }

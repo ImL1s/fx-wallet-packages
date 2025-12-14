@@ -2,12 +2,46 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto_wallet_util/src/utils/bip32/bip32.dart' show NetworkType;
-import 'package:crypto_wallet_util/src/utils/bip32/src/utils/ecurve.dart' as ecc;
-import 'package:crypto_wallet_util/src/utils/bip32/src/utils/wif.dart' show WIF, decode, encode;
+import 'package:crypto_wallet_util/src/utils/bip32/src/utils/ecurve.dart'
+    as ecc;
+import 'package:blockchain_utils/blockchain_utils.dart';
+import 'package:crypto/crypto.dart' as crypto;
+import 'dart:convert';
+import 'package:crypto_wallet_util/src/utils/bip32/src/utils/wif.dart'
+    show WIF, decode, encode;
 import 'package:hex/hex.dart';
+import 'package:crypto_wallet_util/src/utils/bigint.dart';
+import 'package:pointycastle/ecc/api.dart' show ECPoint;
 
-import '../../../../forked_lib/bitcoin_flutter/src/models/networks.dart';
-import '../../../../forked_lib/bitcoin_flutter/src/utils/script.dart';
+// import '../../../../forked_lib/bitcoin_flutter/src/models/networks.dart';
+// import '../../../../forked_lib/bitcoin_flutter/src/utils/script.dart';
+
+List<int> taggedHash(String tag, List<int> msg) {
+  final tagHash = crypto.sha256.convert(utf8.encode(tag)).bytes;
+  return crypto.sha256.convert([...tagHash, ...tagHash, ...msg]).bytes;
+}
+
+BigInt getE(ECPoint P, Uint8List rX, Uint8List message) {
+  return u8aToBn(
+        Uint8List.fromList(
+          taggedHash('BIP0340/challenge', [
+            ...rX,
+            ...bigToBytes(P.x!.toBigInteger()!),
+            ...message,
+          ]),
+        ),
+      ) %
+      secp256k1.n;
+}
+
+final bitcoin = NetworkType(
+  messagePrefix: '\x18Bitcoin Signed Message:\n',
+  bech32: 'bc',
+  bip32: Bip32Type(public: 0x0488b21e, private: 0x0488ade4),
+  pubKeyHash: 0x00,
+  scriptHash: 0x05,
+  wif: 0x80,
+);
 
 class ECPair {
   Uint8List? _d;
@@ -30,7 +64,13 @@ class ECPair {
 
   String toWIF() {
     if (privateKey == null) throw ArgumentError('Missing private key');
-    return encode(WIF(version: network.wif, privateKey: privateKey!, compressed: compressed));
+    return encode(
+      WIF(
+        version: network.wif,
+        privateKey: privateKey!,
+        compressed: compressed,
+      ),
+    );
   }
 
   Uint8List sign(Uint8List hash) {
@@ -41,7 +81,8 @@ class ECPair {
     if (publicKey == null) throw Exception('Public key missed');
 
     final key = taggedHash('TapTweak', toXOnly(publicKey!));
-    final hasOddY = publicKey![0] == 3 || (publicKey![0] == 4 && (publicKey![64] & 1) == 1);
+    final hasOddY =
+        publicKey![0] == 3 || (publicKey![0] == 4 && (publicKey![64] & 1) == 1);
     final private = hasOddY ? _privateNegate() : privateKey;
 
     final sum = bigFromBytes(private!) + bigFromBytes(key);
@@ -49,7 +90,11 @@ class ECPair {
     final mod = r >= BigInt.zero ? r : secp256k1.n + r;
     final result = Uint8List.fromList(bigToBytes(mod));
 
-    return ECPair.fromPrivateKey(result, network: network, compressed: compressed);
+    return ECPair.fromPrivateKey(
+      result,
+      network: network,
+      compressed: compressed,
+    );
   }
 
   Uint8List _privateNegate() {
@@ -64,21 +109,33 @@ class ECPair {
 
   Uint8List signSchnorr({required Uint8List message, String aux = ''}) {
     final d0 = BigInt.parse(HEX.encode(privateKey!), radix: 16);
-    if ((d0 < BigInt.one) || (d0 > (secp256k1.n - BigInt.one))) throw Exception('Private key is invalid.');
+    if ((d0 < BigInt.one) || (d0 > (secp256k1.n - BigInt.one)))
+      throw Exception('Private key is invalid.');
 
     final bAux = HEX.decode(aux.padLeft(64, '0'));
     if (bAux.length != 32) throw Exception('Aux is invalid.');
 
     final P = (secp256k1.G * d0)!;
-    final d = (P.y!.toBigInteger()! % BigInt.two == BigInt.zero) ? d0 : secp256k1.n - d0;
+    final d = (P.y!.toBigInteger()! % BigInt.two == BigInt.zero)
+        ? d0
+        : secp256k1.n - d0;
     final t = d ^ bigFromBytes(taggedHash('BIP0340/aux', bAux));
-    final k0 = bigFromBytes(taggedHash('BIP0340/nonce', bigToBytes(t) + bigToBytes(P.x!.toBigInteger()!) + message)) % secp256k1.n;
+    final k0 =
+        bigFromBytes(
+          taggedHash(
+            'BIP0340/nonce',
+            bigToBytes(t) + bigToBytes(P.x!.toBigInteger()!) + message,
+          ),
+        ) %
+        secp256k1.n;
 
     if (k0.sign == 0) throw Exception('Message is invalid.');
 
     final R = (secp256k1.G * k0)!;
 
-    final k = (R.y!.toBigInteger()! % BigInt.two == BigInt.zero) ? k0 : secp256k1.n - k0;
+    final k = (R.y!.toBigInteger()! % BigInt.two == BigInt.zero)
+        ? k0
+        : secp256k1.n - k0;
     final rX = bigToBytes(R.x!.toBigInteger()!);
     final e = getE(P, rX, message);
 
@@ -107,23 +164,44 @@ class ECPair {
         throw ArgumentError('Unknown network version');
       }
     }
-    return ECPair.fromPrivateKey(decoded.privateKey, compressed: decoded.compressed, network: nw);
+    return ECPair.fromPrivateKey(
+      decoded.privateKey,
+      compressed: decoded.compressed,
+      network: nw,
+    );
   }
 
-  factory ECPair.fromPublicKey(Uint8List publicKey, {NetworkType? network, bool? compressed}) {
-    if (!ecc.isPoint(publicKey)) throw ArgumentError('Point is not on the curve');
+  factory ECPair.fromPublicKey(
+    Uint8List publicKey, {
+    NetworkType? network,
+    bool? compressed,
+  }) {
+    if (!ecc.isPoint(publicKey))
+      throw ArgumentError('Point is not on the curve');
 
     return ECPair(null, publicKey, network: network, compressed: compressed);
   }
 
-  factory ECPair.fromPrivateKey(Uint8List privateKey, {NetworkType? network, bool? compressed}) {
-    if (privateKey.length != 32) throw ArgumentError('Expected property privateKey of type Buffer(Length: 32)');
-    if (!ecc.isPrivate(privateKey)) throw ArgumentError('Private key not in range [1, n)');
+  factory ECPair.fromPrivateKey(
+    Uint8List privateKey, {
+    NetworkType? network,
+    bool? compressed,
+  }) {
+    if (privateKey.length != 32)
+      throw ArgumentError(
+        'Expected property privateKey of type Buffer(Length: 32)',
+      );
+    if (!ecc.isPrivate(privateKey))
+      throw ArgumentError('Private key not in range [1, n)');
 
     return ECPair(privateKey, null, network: network, compressed: compressed);
   }
 
-  factory ECPair.makeRandom({NetworkType? network, bool? compressed, Function? rng}) {
+  factory ECPair.makeRandom({
+    NetworkType? network,
+    bool? compressed,
+    Function? rng,
+  }) {
     final rFunc = rng ?? _randomBytes;
     Uint8List? d;
 
