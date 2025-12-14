@@ -20,22 +20,21 @@ extension hexString on String {
   Uint8List toUint8List() => dynamicToUint8List(this);
 }
 
-extension FxBigInt on BigInt {
-  /// The minimum number of bytes required to store this big integer.
-  int get byteLength => (bitLength + 7) >> 3;
-
-  /// Converts this [BigInt] into a [Uint8List] of size [length].
-  /// If [length] is omitted, the minimum number of bytes required to store this big integer value is used.
+extension BigIntExtension on BigInt {
+  /// Converts this [BigInt] to a [Uint8List].
   Uint8List toUint8List([final int? length]) {
-    final int byteLength = length ?? this.byteLength;
-    assert(length == null || length >= byteLength,
-        'The value $this overflows $byteLength byte(s)');
-    return (Buffer(byteLength)..setBigInt(this, 0, byteLength)).asUint8List();
+    final int byteLength = length ?? (bitLength + 7) ~/ 8;
+    return BigintUtils.toBytes(this, length: byteLength, order: Endian.little);
   }
 
   /// Creates a [BigInt] from an array of [bytes].
-  static BigInt fromUint8List(final Iterable<int> bytes,
-      [final Endian endian = Endian.little]) {
-    return Buffer.fromList(bytes).getBigUint(0, bytes.length, endian);
+  static BigInt fromUint8List(
+    final Iterable<int> bytes, [
+    final Endian endian = Endian.little,
+  ]) {
+    return BigintUtils.fromBytes(
+      Uint8List.fromList(bytes.toList()),
+      byteOrder: endian,
+    );
   }
 }
