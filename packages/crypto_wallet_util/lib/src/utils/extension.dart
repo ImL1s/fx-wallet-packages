@@ -24,7 +24,9 @@ extension BigIntExtension on BigInt {
   /// Converts this [BigInt] to a [Uint8List].
   Uint8List toUint8List([final int? length]) {
     final int byteLength = length ?? (bitLength + 7) ~/ 8;
-    return BigintUtils.toBytes(this, length: byteLength, order: Endian.little);
+    return Uint8List.fromList(
+      BigintUtils.toBytes(this, length: byteLength, order: Endian.little),
+    );
   }
 
   /// Creates a [BigInt] from an array of [bytes].
