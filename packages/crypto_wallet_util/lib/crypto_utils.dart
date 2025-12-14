@@ -22,4 +22,4 @@ export 'src/transaction/eth/legacy.dart';
 export 'src/transaction/btc/sign_data.dart';
 
 // Ensure generic utils are available if needed
-export 'src/utils/utils.dart';
+// export 'src/utils/utils.dart';
