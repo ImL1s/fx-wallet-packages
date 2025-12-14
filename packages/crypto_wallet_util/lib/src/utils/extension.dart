@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:crypto_wallet_util/src/utils/utils.dart';
-import 'package:crypto_wallet_util/src/transaction/sol/v2/crypto/buffer.dart';
+import 'package:blockchain_utils/blockchain_utils.dart';
 
 extension hexList on List<int> {
   Uint8List toUint8List() => Uint8List.fromList(this);

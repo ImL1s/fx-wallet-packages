@@ -12,6 +12,9 @@ import 'package:crypto_wallet_util/src/utils/bip32/src/utils/wif.dart'
 import 'package:hex/hex.dart';
 import 'package:crypto_wallet_util/src/utils/bigint.dart';
 import 'package:pointycastle/ecc/api.dart' show ECPoint;
+import 'package:pointycastle/ecc/curves/secp256k1.dart';
+
+final secp256k1 = ECCurve_secp256k1();
 
 // import '../../../../forked_lib/bitcoin_flutter/src/models/networks.dart';
 // import '../../../../forked_lib/bitcoin_flutter/src/utils/script.dart';
